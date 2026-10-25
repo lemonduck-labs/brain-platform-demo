@@ -1,0 +1,24 @@
+{
+  "name": "brain-platform",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "The Brain platform: a web front end over an Obsidian vault held in a GitHub repo, with a demo mode that runs on a bundled fictional vault",
+  "scripts": {
+    "dev": "netlify dev",
+    "deploy": "netlify deploy --prod",
+    "bundle": "node scripts/bundle-vault.mjs",
+    "demo": "node --experimental-strip-types scripts/dev-server.mjs",
+    "build": "node scripts/build.mjs",
+    "test": "node --experimental-strip-types --test tests/leads.test.mjs tests/activity.test.mjs tests/sequence.test.mjs tests/team.test.mjs tests/settle.test.mjs tests/dismiss.test.mjs tests/demo.test.mjs"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^11.1.0",
+    "@simplewebauthn/server": "^14.0.2",
+    "marked": "4.3.0",
+    "three": "0.147.0"
+  },
+  "engines": {
+    "node": ">=22.6"
+  }
+}

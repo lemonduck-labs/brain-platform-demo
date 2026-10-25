@@ -1,0 +1,37 @@
+[build]
+  command = "node scripts/build.mjs"
+  publish = "public"
+
+# Demo mode (no GITHUB_TOKEN set on the site): the build bundles the vault from this public repo
+# into netlify/functions/lib/vault-bundle.json. The repo must be public before a deploy can clone
+# it; until then the build falls back to VAULT_DIR (a vault folder in the checkout), and stops
+# with an error if there is none. Setting GITHUB_TOKEN switches the site to the live mode, which
+# reads the repo named by GITHUB_REPO through the GitHub API instead.
+[build.environment]
+  VAULT_REPO = "https://github.com/lemonduck-labs/brain-vault-demo.git"
+  NODE_VERSION = "22"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+  included_files = ["netlify/functions/lib/vault-bundle.json"]
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer"
+
+# index.html names the versioned assets (see scripts/build.mjs), so it must never be served
+# stale from a cache: every visit re-checks with the origin, and a merge reaches an open
+# browser on its next background refresh instead of needing a hard refresh.
+[[headers]]
+  for = "/"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache"

@@ -1,0 +1,689 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex, nofollow">
+<meta name="brain-build" content="dev">
+<title>The Brain</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%23000'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%2345D0A8'/%3E%3Ccircle cx='16' cy='24' r='2.5' fill='%23FF7A45'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400..900;1,400..900&family=Spline+Sans+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="demoBanner" class="demo-banner" role="note" hidden>Demo: a fictional vault. Your changes stay in this visit only.</div>
+
+<div id="gate" class="gate" hidden>
+  <form id="gateForm" class="gate-card" autocomplete="off">
+    <h1>The Brain<span class="dot">.</span></h1>
+    <p id="gateIntro">Enter the passphrase to open the platform. It is remembered on this device.</p>
+    <label for="passphrase" class="sr-only" id="passLabel">Passphrase</label>
+    <input id="passphrase" type="password" placeholder="Passphrase" autofocus>
+    <button type="submit" id="gateBtn">Open</button>
+    <button type="button" id="demoBtn" hidden>Enter the demo</button>
+    <div id="gateMsg" class="gate-msg" role="status"></div>
+  </form>
+</div>
+
+<div id="pkNudge" class="pk-nudge" hidden role="status">
+  <span>Set up a passkey so a wrong guess and a lucky device is not enough on its own.</span>
+  <button type="button" id="pkNudgeSetup">Set up a passkey</button>
+  <button type="button" id="pkNudgeDismiss" class="icon-btn" aria-label="Not now">Not now</button>
+</div>
+
+<div id="pkPanel" class="gate pk-overlay" hidden>
+  <div class="gate-card">
+    <h1>Passkeys</h1>
+    <p>Once one is registered, signing in needs the passphrase and one of these. Recovery if a device is lost: set <code>BRAIN_PASSKEY_RESET</code> in Netlify, sign in with the passphrase alone, register a new passkey, then remove the variable.</p>
+    <ul id="pkList" class="plain-list"></ul>
+    <button type="button" id="pkAdd">Add a passkey for this device</button>
+    <button type="button" id="pkClose">Close</button>
+    <div id="pkMsg" class="gate-msg" role="status"></div>
+  </div>
+</div>
+
+<nav id="sidebar" class="sidebar" aria-label="The Brain">
+  <div class="sidebar-head">
+    <a class="brand" href="#/">The Brain<span class="dot">.</span></a>
+    <button id="sidebarToggle" class="icon-btn sidebar-toggle" type="button" title="Collapse sidebar (Cmd/Ctrl+\)" aria-label="Collapse sidebar" aria-expanded="true">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M5 3v10"/><path d="M10.5 5.5 8 8l2.5 2.5"/></svg>
+    </button>
+  </div>
+  <div class="sidebar-scroll">
+    <div class="nav" aria-label="Areas">
+      <div class="nav-group">
+        <div class="nav-label">Today</div>
+        <a href="#/" data-route="" class="nav-link"><span class="nav-abbr" aria-hidden="true">B</span><span class="nav-text">Brain</span></a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-label">Work</div>
+        <a href="#/tasks" data-route="tasks" class="nav-link"><span class="nav-abbr" aria-hidden="true">T</span><span class="nav-text">Tasks</span><span class="nav-count mono" id="navTasksCount" hidden title="Open tasks tagged next"></span><span class="badge" id="badgeNeeds" hidden title="Claude needs something from you"></span></a>
+        <a href="#/fernmoor" data-route="fernmoor" class="nav-link"><span class="nav-abbr" aria-hidden="true">F</span><span class="nav-text">Fernmoor</span></a>
+        <a href="#/approvals" data-route="approvals" class="nav-link"><span class="nav-abbr" aria-hidden="true">A</span><span class="nav-text">Approvals</span><span class="badge" id="badgeApprovals" hidden></span></a>
+        <a href="#/leads" data-route="leads" class="nav-link"><span class="nav-abbr" aria-hidden="true">L</span><span class="nav-text">Leads</span><span class="badge" id="badgeLeads" hidden title="Leads due today"></span></a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-label">Knowledge</div>
+        <a href="#/notes" data-route="notes" class="nav-link"><span class="nav-abbr" aria-hidden="true">N</span><span class="nav-text">Notes</span></a>
+        <a href="#/journal" data-route="journal" class="nav-link"><span class="nav-abbr" aria-hidden="true">J</span><span class="nav-text">Journal</span></a>
+        <a href="#/scout" data-route="scout" class="nav-link"><span class="nav-abbr" aria-hidden="true">S</span><span class="nav-text">Scout</span><span class="badge" id="badgeScout" hidden></span></a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-label">Claude</div>
+        <a href="#/chat" data-route="chat" class="nav-link"><span class="nav-abbr" aria-hidden="true">C</span><span class="nav-text">Chat</span><span class="badge" id="badgeChat" hidden title="Waiting on a reply"></span></a>
+        <a href="#/team" data-route="team" class="nav-link"><span class="nav-abbr" aria-hidden="true">D</span><span class="nav-text">Team</span><span class="badge" id="badgeTeam" hidden title="Agents working now"></span></a>
+        <a href="#/runs" data-route="runs" class="nav-link"><span class="nav-abbr" aria-hidden="true">R</span><span class="nav-text">Runs</span></a>
+      </div>
+    </div>
+  </div>
+  <div class="sidebar-foot">
+    <button id="runNowBtn" class="sidebar-run" type="button" title="Run Claude now">
+      <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4 2.5v11l10-5.5-10-5.5z"/></svg>
+      <span class="nav-text">Run Claude now</span>
+    </button>
+    <span id="syncStatus" class="sync" role="status" aria-live="polite"><span id="syncDot" class="sync-dot"></span><span class="sync-words nav-text"><span id="syncText" class="mono">Connecting</span><span id="syncVault" class="mono sync-vault"></span></span></span>
+    <div id="runsWeekLine" class="sidebar-runsweek mono nav-text"></div>
+    <div class="sidebar-foot-row">
+      <button id="paletteBtn" class="icon-btn palette-trigger mono" type="button" title="Command palette (Cmd+K)" aria-label="Open the command palette">&#8984;K</button>
+      <button id="refreshBtn" class="refresh-btn icon-btn" type="button" title="Pull the latest from the vault now"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M13.2 8a5.2 5.2 0 1 1-1.5-3.7"/><path d="M13.4 2.6v3.2h-3.2"/></svg><span class="sr-only">Refresh</span></button>
+      <button id="notifyBtn" class="icon-btn" type="button" title="Get a notification when a run you started finishes" aria-label="Enable notifications"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6.5a4 4 0 0 1 8 0c0 3 1 4 1.4 4.5H2.6C3 10.5 4 9.5 4 6.5Z"/><path d="M6.5 13.5a1.6 1.6 0 0 0 3 0"/></svg></button>
+      <button id="pkManageBtn" class="icon-btn" type="button" title="Manage passkeys" aria-label="Passkeys"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="5.5" cy="5.5" r="2.7"/><path d="M7.5 7.5 13.5 13.5M11 11l1.6-1.6M13 13l1.4-1.4"/></svg></button>
+      <button id="lockBtn" class="icon-btn" type="button" title="Lock this device" aria-label="Lock"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.6"/><path d="M5.2 7V5.2a2.8 2.8 0 0 1 5.6 0V7"/></svg></button>
+    </div>
+  </div>
+</nav>
+
+<!-- Below 768px: a bottom tab bar stands in for the sidebar's nav, plus a floating quick-capture button -->
+<nav id="bottomTabs" class="bottom-tabs" aria-label="Areas">
+  <a href="#/" data-route="" class="bt-link"><span class="bt-abbr" aria-hidden="true">B</span><span class="bt-label">Brain</span></a>
+  <a href="#/tasks" data-route="tasks" class="bt-link"><span class="bt-abbr" aria-hidden="true">T</span><span class="bt-label">Tasks</span><span class="badge bt-badge" id="badgeNeedsTab" hidden></span></a>
+  <a href="#/approvals" data-route="approvals" class="bt-link"><span class="bt-abbr" aria-hidden="true">A</span><span class="bt-label">Approvals</span><span class="badge bt-badge" id="badgeApprovalsTab" hidden></span></a>
+  <a href="#/chat" data-route="chat" class="bt-link"><span class="bt-abbr" aria-hidden="true">C</span><span class="bt-label">Chat</span></a>
+  <button type="button" id="moreTabBtn" class="bt-link bt-more"><span class="bt-abbr" aria-hidden="true">&#8943;</span><span class="bt-label">More</span></button>
+</nav>
+<button id="fabAdd" class="fab-add" type="button" title="Quick capture (C)" aria-label="Quick capture">
+  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 2.5v11M2.5 8h11"/></svg>
+</button>
+
+<div id="moreSheetOverlay" class="sheet-overlay" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="More areas">
+    <div class="sheet-head"><h2>More</h2><button type="button" id="moreSheetClose" class="icon-btn" aria-label="Close">&#10005;</button></div>
+    <div class="sheet-list">
+      <a href="#/leads" data-route="leads" class="sheet-link">Leads <span class="badge" id="badgeLeadsTab" hidden></span></a>
+      <a href="#/fernmoor" data-route="fernmoor" class="sheet-link">Fernmoor</a>
+      <a href="#/notes" data-route="notes" class="sheet-link">Notes</a>
+      <a href="#/journal" data-route="journal" class="sheet-link">Journal</a>
+      <a href="#/scout" data-route="scout" class="sheet-link">Scout <span class="badge" id="badgeScoutTab" hidden></span></a>
+      <a href="#/team" data-route="team" class="sheet-link">Team</a>
+      <a href="#/runs" data-route="runs" class="sheet-link">Runs</a>
+    </div>
+  </div>
+</div>
+
+<div id="shortcutSheetOverlay" class="sheet-overlay" hidden>
+  <div class="sheet shortcuts-sheet" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts">
+    <div class="sheet-head"><h2>Keyboard shortcuts</h2><button type="button" id="shortcutSheetClose" class="icon-btn" aria-label="Close">&#10005;</button></div>
+    <div class="shortcut-groups">
+      <div class="shortcut-group">
+        <h3>Navigation</h3>
+        <div class="shortcut-row"><span>Brain</span><span class="key-hint mono">G B</span></div>
+        <div class="shortcut-row"><span>Tasks</span><span class="key-hint mono">G T</span></div>
+        <div class="shortcut-row"><span>Fernmoor</span><span class="key-hint mono">G F</span></div>
+        <div class="shortcut-row"><span>Approvals</span><span class="key-hint mono">G A</span></div>
+        <div class="shortcut-row"><span>Leads</span><span class="key-hint mono">G L</span></div>
+        <div class="shortcut-row"><span>Notes</span><span class="key-hint mono">G N</span></div>
+        <div class="shortcut-row"><span>Journal</span><span class="key-hint mono">G J</span></div>
+        <div class="shortcut-row"><span>Scout</span><span class="key-hint mono">G S</span></div>
+        <div class="shortcut-row"><span>Chat</span><span class="key-hint mono">G C</span></div>
+        <div class="shortcut-row"><span>Team</span><span class="key-hint mono">G D</span></div>
+        <div class="shortcut-row"><span>Runs</span><span class="key-hint mono">G R</span></div>
+      </div>
+      <div class="shortcut-group">
+        <h3>Actions</h3>
+        <div class="shortcut-row"><span>Command palette</span><span class="key-hint mono">&#8984;K</span></div>
+        <div class="shortcut-row"><span>Quick capture</span><span class="key-hint mono">C</span></div>
+        <div class="shortcut-row"><span>Collapse sidebar</span><span class="key-hint mono">&#8984;\</span></div>
+        <div class="shortcut-row"><span>This sheet</span><span class="key-hint mono">?</span></div>
+      </div>
+      <div class="shortcut-group">
+        <h3>Approvals</h3>
+        <div class="shortcut-row"><span>Move down, up</span><span class="key-hint mono">J K</span></div>
+        <div class="shortcut-row"><span>Approve</span><span class="key-hint mono">A</span></div>
+        <div class="shortcut-row"><span>Decline</span><span class="key-hint mono">D</span></div>
+        <div class="shortcut-row"><span>New request</span><span class="key-hint mono">N</span></div>
+        <div class="shortcut-row"><span>Snooze</span><span class="key-hint mono">S</span></div>
+      </div>
+      <div class="shortcut-group">
+        <h3>Tasks, Fernmoor, Claude needs from you</h3>
+        <div class="shortcut-row"><span>Open a row's detail</span><span class="key-hint mono">&#8629;</span></div>
+        <div class="shortcut-row"><span>Move down, up (detail open)</span><span class="key-hint mono">J K</span></div>
+        <div class="shortcut-row"><span>Close the detail panel</span><span class="key-hint mono">Esc</span></div>
+      </div>
+      <div class="shortcut-group">
+        <h3>Leads list and board</h3>
+        <div class="shortcut-row"><span>Move down, up</span><span class="key-hint mono">J K</span></div>
+        <div class="shortcut-row"><span>Open the record</span><span class="key-hint mono">&#8629;</span></div>
+        <div class="shortcut-row"><span>Change status</span><span class="key-hint mono">S</span></div>
+      </div>
+      <div class="shortcut-group">
+        <h3>Journal</h3>
+        <div class="shortcut-row"><span>Previous day, next day</span><span class="key-hint mono">[ ]</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Command palette: Cmd+K / Ctrl+K, anywhere in the app -->
+<div id="paletteOverlay" class="palette-overlay" hidden>
+  <div class="palette" role="dialog" aria-modal="true" aria-label="Command palette">
+    <label for="paletteInput" class="sr-only">Search commands</label>
+    <input id="paletteInput" class="palette-input" type="text" placeholder="Go somewhere, run something, or type a request..." autocomplete="off" spellcheck="false">
+    <div id="paletteList" class="palette-list"></div>
+    <div class="palette-footer">
+      <span>&#8593;&#8595; move</span><span>&#8629; select</span><span>1-9 quick pick</span><span>Esc close</span>
+    </div>
+  </div>
+</div>
+
+<div id="runBar" class="runbar" role="status" aria-live="polite" hidden>
+  <span class="runbar-dot" aria-hidden="true"></span>
+  <span id="runBarText" class="runbar-text"></span>
+  <button id="runBarHide" type="button" class="runbar-x" aria-label="Hide">Hide</button>
+</div>
+
+<main id="main">
+
+  <!-- Brain / home -->
+  <section id="view-home" class="view" data-view="">
+    <div class="hero">
+      <div id="brainMount" class="brain-mount"></div>
+      <div class="hud hud-tl">
+        <div class="eyebrow" id="hudDate"></div>
+        <div class="one" id="hudOne">Loading the vault</div>
+        <button type="button" id="hudOneMore" class="hud-one-more" hidden>More</button>
+        <div class="hud-sub" id="hudSub"></div>
+      </div>
+      <div class="hud hud-tr">
+        <div class="tile"><div class="k">Open tasks</div><div class="v mono" id="tTasks">·</div></div>
+        <div class="tile"><div class="k">Approvals</div><div class="v mono" id="tApprovals">·</div></div>
+        <div class="tile"><div class="k">Scout</div><div class="v mono" id="tScout">·</div></div>
+        <div class="tile"><div class="k">Notes</div><div class="v mono" id="tNotes">·</div></div>
+      </div>
+      <div class="hud hud-bl">
+        <div class="eyebrow">Activity</div>
+        <ul class="ticker" id="ticker"></ul>
+      </div>
+      <div class="hud hud-br mono" id="hudRepo"></div>
+    </div>
+
+    <div id="sinceCard" class="panel since-card" hidden>
+      <div class="since-head">
+        <h2>Since you were last here</h2>
+        <button type="button" id="sinceDismiss" class="icon-btn" aria-label="Dismiss">&#10005;</button>
+      </div>
+      <ul id="sinceList" class="since-list"></ul>
+    </div>
+
+    <article class="panel foryou-panel" aria-labelledby="foryouHead">
+      <h2 id="foryouHead">For you today</h2>
+      <div id="foryouList" class="foryou-list"></div>
+    </article>
+
+    <article class="panel prio-home" aria-labelledby="homePrioHead">
+      <h2 id="homePrioHead">Priorities</h2>
+      <div class="prio-cols"><div id="homePrioDay" class="prio-col"></div><div id="homePrioWeek" class="prio-col"></div></div>
+    </article>
+
+    <article class="panel tabs-panel" aria-labelledby="homeTabsHead">
+      <h2 id="homeTabsHead" class="sr-only">This week, Today's plan and Direction</h2>
+      <div class="tabs-head" role="tablist" aria-label="This week, Today's plan, Direction">
+        <button type="button" class="tab-btn" data-tab="week" role="tab" aria-selected="true">This week</button>
+        <button type="button" class="tab-btn" data-tab="plan" role="tab" aria-selected="false">Today's plan</button>
+        <button type="button" class="tab-btn" data-tab="direction" role="tab" aria-selected="false">Direction</button>
+        <span id="homeTabFlag" class="outdate-flag" hidden></span>
+      </div>
+      <div class="tab-panels">
+        <div class="tab-panel md" id="tabWeek" data-tab="week" role="tabpanel"></div>
+        <div class="tab-panel md" id="tabPlan" data-tab="plan" role="tabpanel" hidden></div>
+        <div class="tab-panel md" id="tabDirection" data-tab="direction" role="tabpanel" hidden></div>
+      </div>
+    </article>
+  </section>
+
+  <!-- Tasks -->
+  <section id="view-tasks" class="view" data-view="tasks" hidden>
+    <div class="area-head">
+      <h1>Tasks</h1>
+      <p>Every open checkbox in the vault, tagged next, blocked or decision. Ticking here edits the note it lives in. Notes sit under a task in the vault; Send for approval puts the task and its notes in Approvals for Claude.</p>
+    </div>
+    <section id="prioPanel" class="prio panel" aria-labelledby="prioHead">
+      <div class="prio-head">
+        <h2 id="prioHead">Priorities</h2>
+        <span class="why">Press Today or Week on any task, or add the brain's suggestions. Ticking a priority ticks the task where it lives.</span>
+      </div>
+      <div class="prio-cols"><div id="prioDay" class="prio-col"></div><div id="prioWeek" class="prio-col"></div></div>
+    </section>
+    <section id="needsPanel" class="needs panel" aria-labelledby="needsHead">
+      <div class="needs-head">
+        <h2 id="needsHead">Claude needs from you <span id="needsCount" class="needs-count"></span></h2>
+        <span class="why">Tick Done when it is done, or reply with a note. Claude reads both at the next run or chat.</span>
+      </div>
+      <div id="needsList" class="needs-rows"></div>
+      <div id="guidesRow" class="guides-row"></div>
+    </section>
+    <form id="addTask" class="add-row">
+      <input id="newTaskText" type="text" placeholder="Add a task to Now" required>
+      <select id="newTaskTag" aria-label="Tag"><option value="next">next</option><option value="blocked">blocked</option><option value="decision">decision</option></select>
+      <input id="newTaskProject" type="text" placeholder="Project (optional)">
+      <button type="submit">Add</button>
+    </form>
+    <div class="toolbar">
+      <div class="chips" role="group" aria-label="Filter">
+        <button class="chip" data-f="all" aria-pressed="true">All</button>
+        <button class="chip" data-f="next" aria-pressed="false">Next</button>
+        <button class="chip" data-f="blocked" aria-pressed="false">Blocked</button>
+        <button class="chip" data-f="decision" aria-pressed="false">Decisions</button>
+      </div>
+      <label class="toggle"><input type="checkbox" id="showDone"> show done</label>
+      <input id="taskSearch" type="search" placeholder="Search tasks" aria-label="Search tasks">
+    </div>
+    <div id="taskList" class="task-groups"></div>
+  </section>
+
+  <!-- Approvals -->
+  <section id="view-approvals" class="view" data-view="approvals" hidden>
+    <div class="area-head">
+      <h1>Approvals</h1>
+      <p>Work the brain has prepared and will complete once you approve it, and the requests you write for Claude. A decline is never re-asked. Sends, spend and deletes are always confirmed in chat, never here.</p>
+      <p class="watcher-row"><span id="watcherLine"></span> <button id="watcherRun" type="button" class="primary" hidden>Run Claude now</button></p>
+    </div>
+    <div class="request-trigger-row">
+      <button id="newRequestBtn" type="button" class="primary" title="New request">+ New request<span class="key-hint">N</span></button>
+    </div>
+    <form id="requestForm" class="request-form panel" hidden>
+      <div class="request-form-head"><h2>Ask Claude to do something</h2><button type="button" id="requestFormClose" class="icon-btn" aria-label="Close">&#10005;</button></div>
+      <input id="reqTitle" type="text" placeholder="What you want done, in one line" required>
+      <textarea id="reqDetail" rows="2" placeholder="Anything Claude needs to know: where, why, what good looks like (optional)"></textarea>
+      <label class="toggle req-dept">Department <select id="reqDept" aria-label="Department"><option value="">Unassigned</option></select></label>
+      <div class="request-row"><span class="why">Claude turns it into a proposal with the cost and exactly what will change. Nothing runs until you approve that.</span><button type="submit" class="primary">Send to Claude</button></div>
+    </form>
+    <section id="approvalsReview" class="review-block" hidden>
+      <h2 class="sub-head">Done for review <span id="reviewCount" class="age-chip" hidden></span></h2>
+      <p class="why-line">Finished in the last 7 days. A row here is only settled once you accept it or 7 days pass.</p>
+      <div id="reviewList" class="cards review-cards"></div>
+    </section>
+    <section id="approvalsPriorityBlock" class="priority-block">
+      <h2 class="sub-head">Priorities</h2>
+      <p class="why-line">The order a run works approved and requested rows in, P1 first. Drag a row, or focus it and press Alt and up or down.</p>
+      <ol id="priorityList" class="priority-list"></ol>
+    </section>
+    <div id="approvalsCardsView">
+      <h2 class="sub-head">Waiting for your yes</h2>
+      <div id="approvalsPending" class="cards"></div>
+      <h2 class="sub-head">Your requests, being scoped</h2>
+      <div id="approvalsRequested" class="cards"></div>
+      <h2 class="sub-head">Approved and in progress</h2>
+      <div id="approvalsActive" class="cards"></div>
+      <h2 class="sub-head settled-head">Settled <button id="settledMore" type="button" class="ghost small" hidden></button></h2>
+      <div id="approvalsSettled" class="cards settled-list"></div>
+      <h2 class="sub-head settled-head" id="snoozedHead" hidden>Snoozed <button id="snoozedToggle" type="button" class="ghost small"></button></h2>
+      <div id="approvalsSnoozed" class="cards settled-list"></div>
+    </div>
+    <!-- Desktop only (roughly 900px+): a triage inbox, queue on the left, the selected row's
+         detail on the right. Phones keep the card list above exactly as it is. -->
+    <div id="approvalsInbox" class="approvals-inbox">
+      <div class="inbox-queue">
+        <div class="inbox-queue-head">
+          <h2 id="inboxQueueTitle">Queue</h2>
+          <span class="key-legend mono">J/K move &middot; A approve &middot; D decline &middot; S snooze</span>
+        </div>
+        <div class="inbox-filter-row">
+          <button type="button" id="inboxFilterQueue" class="chip" aria-pressed="true">Queue</button>
+          <button type="button" id="inboxFilterSnoozed" class="chip" aria-pressed="false" hidden>Snoozed</button>
+        </div>
+        <ul id="approvalsInboxList" class="inbox-list"></ul>
+      </div>
+      <div id="approvalsInboxDetail" class="inbox-detail"></div>
+    </div>
+  </section>
+
+  <!-- Leads: the Owlbridge pipeline table in the vault (see netlify/functions/lib/leads.mts) -->
+  <section id="view-leads" class="view" data-view="leads" hidden>
+    <div class="area-head">
+      <h1>Leads</h1>
+      <p>Every Owlbridge lead, where it stands and what happens next, read from and written to <a id="leadsNoteLink" href="#/notes">Owlbridge pipeline</a> in the vault. A move here commits to that note, and the Director works the same table. Nothing here sends an email or contacts anyone.</p>
+    </div>
+    <p id="leadsMissing" class="empty" hidden></p>
+    <div id="leadsBody">
+      <!-- The Leads sub-pages: #/leads (home), #/leads/list, #/leads/board, #/leads/sequence, #/leads/reports, #/leads/record/<id> -->
+      <div class="lead-subnav">
+        <nav class="lead-tabs" aria-label="Leads pages">
+          <a href="#/leads" data-lsub="home">Home <span class="count mono" id="leadsTabDue"></span></a>
+          <a href="#/leads/list" data-lsub="list">All leads <span class="count mono" id="leadsTabAll"></span></a>
+          <a href="#/leads/board" data-lsub="board">Board</a>
+          <a href="#/leads/sequence" data-lsub="sequence">Sequence</a>
+          <a href="#/leads/reports" data-lsub="reports">Reports</a>
+        </nav>
+        <button id="leadSearchBtn" type="button" class="ghost small lead-search-btn" title="Search leads (Cmd K or Ctrl K)"><span>Search leads</span> <kbd class="mono">&#8984;K</kbd></button>
+        <button id="leadAddBtn" type="button" class="primary">+ Add lead</button>
+      </div>
+      <form id="leadAddForm" class="panel lead-add-form" hidden>
+        <div class="request-form-head"><h2>Add a lead</h2><button type="button" id="leadAddClose" class="icon-btn" aria-label="Close">&#10005;</button></div>
+        <div class="lead-add-grid">
+          <input id="leadNewCompany" type="text" placeholder="Company" required aria-label="Company">
+          <input id="leadNewSegment" type="text" placeholder="Segment" aria-label="Segment">
+          <select id="leadNewTier" aria-label="Tier"><option value="">Tier</option><option>A</option><option>B</option><option>C</option><option>seed</option></select>
+          <input id="leadNewScore" type="text" inputmode="numeric" placeholder="Score out of 100" aria-label="Score">
+          <input id="leadNewContact" type="text" placeholder="Contact, and their role" aria-label="Contact">
+          <input id="leadNewEmail" type="text" placeholder="Published email address" aria-label="Email">
+          <input id="leadNewSource" type="text" placeholder="Source" value="platform" aria-label="Source">
+          <input id="leadNewDate" type="date" aria-label="Next date">
+          <input id="leadNewStep" type="text" placeholder="Next step" aria-label="Next step" class="lead-add-wide">
+        </div>
+        <div class="request-row"><span class="why">Added with status researched. Research detail belongs in the lead list note, not here.</span><button type="submit" class="primary">Add lead</button></div>
+      </form>
+
+      <!-- Home: the strip, then Today, Pipeline and Activity -->
+      <div id="leadsHome" class="lead-page" data-lsub="home">
+        <div id="leadsStrip" class="stat-tiles lead-strip"></div>
+        <div id="leadsStripRows" class="panel lead-strip-rows" hidden></div>
+        <div class="lead-home-grid">
+          <section class="panel lead-today" aria-labelledby="leadsDueHead">
+            <h2 id="leadsDueHead">Today <span id="leadsDueCount" class="mono"></span></h2>
+            <div id="leadsDue" class="lead-due-list"></div>
+            <h2 class="lead-sub-head">Coming up <span id="leadsSoonCount" class="mono"></span></h2>
+            <div id="leadsSoon" class="lead-due-list"></div>
+          </section>
+          <section class="panel lead-funnel-card" aria-labelledby="leadsFunnelHead">
+            <h2 id="leadsFunnelHead">Pipeline <span id="leadsFunnelSub" class="mono"></span></h2>
+            <div id="leadsFunnel" class="lead-funnel"></div>
+            <p id="leadsFunnelNote" class="why-line"></p>
+          </section>
+          <section class="panel lead-feed-card" aria-labelledby="leadsFeedHead">
+            <h2 id="leadsFeedHead">Activity <span class="mono">latest</span></h2>
+            <div id="leadsFeed" class="lead-feed"></div>
+            <p id="leadsTeamLine" class="lead-team-line"></p>
+          </section>
+        </div>
+      </div>
+
+      <!-- Filters: shared by the list and the board, remembered per device -->
+      <div id="leadsFilterBar" class="lead-tools">
+        <div class="toolbar lead-filters" role="group" aria-label="Filter leads">
+          <label class="toggle">Tier <select id="leadFTier" data-f="tier"></select></label>
+          <label class="toggle">Segment <select id="leadFSegment" data-f="segment"></select></label>
+          <label class="toggle">Source <select id="leadFSource" data-f="source"></select></label>
+          <label class="toggle">Status <select id="leadFStatus" data-f="status"></select></label>
+          <button type="button" id="leadFClear" class="ghost small" hidden>Clear filters</button>
+        </div>
+        <div class="lead-colpick-wrap" id="leadColPickWrap">
+          <button type="button" id="leadColPickBtn" class="ghost small" aria-expanded="false" aria-controls="leadColPick">Columns</button>
+          <div id="leadColPick" class="panel lead-colpick" hidden role="group" aria-label="Columns shown"></div>
+        </div>
+      </div>
+
+      <!-- List: saved views, sortable columns, bulk actions -->
+      <div id="leadsList" class="lead-page" data-lsub="list">
+        <div id="leadViews" class="lead-views" role="tablist" aria-label="Saved views"></div>
+        <div id="leadBulk" class="lead-bulk" hidden></div>
+        <div class="lead-table-wrap"><table id="leadTable" class="lead-table"></table></div>
+      </div>
+
+      <!-- Board: one column per status -->
+      <div id="leadsBoardPage" class="lead-page" data-lsub="board">
+        <div id="leadsBoard" class="lead-board"></div>
+      </div>
+
+      <!-- Sequence: the three Owlbridge emails, read only, with per-step counts from the pipeline and the activity log -->
+      <div id="leadsSequence" class="lead-page" data-lsub="sequence">
+        <p class="why-line">The words live in <a id="leadSeqNote" href="#/notes">Owlbridge outreach drafts</a> and are edited there. Counts come from email lines in Owlbridge activity log whose summary starts "Email 1", "Email 2" or "Email 3", and from each lead's status. Nothing on this page sends an email.</p>
+        <div id="leadSeqChain" class="lead-seq"></div>
+        <div id="leadSeqRows" class="panel lead-rows-box" hidden></div>
+      </div>
+
+      <!-- Reports: counts by stage, tier, segment and source; reply rate; median days to reply; leads touched per week -->
+      <div id="leadsReports" class="lead-page" data-lsub="reports">
+        <div id="leadRepRows" class="panel lead-rows-box" hidden></div>
+        <div id="leadReports" class="lead-rep-grid"></div>
+      </div>
+
+      <!-- Record: header, stage path, fields, timeline, related -->
+      <div id="leadsRecord" class="lead-page" data-lsub="record"></div>
+    </div>
+  </section>
+
+  <!-- Fernmoor -->
+  <section id="view-fernmoor" class="view" data-view="fernmoor" hidden>
+    <div class="area-head">
+      <h1>Fernmoor</h1>
+      <p>Work for Fernmoor and its brands, kept apart from your own ventures. Tasks come from the Fernmoor notes in the vault; new ones go into Fernmoor tasks under the brand you pick. <span id="workCount"></span></p>
+    </div>
+    <form id="addWork" class="add-row work-row">
+      <input id="workText" type="text" placeholder="Add a Fernmoor task" required>
+      <select id="workBrand" aria-label="Brand"><option value="heating">Fernmoor Heating</option><option value="ridgeby">Ridgeby Roofing</option><option value="warmstead">Warmstead</option><option value="group">Group</option></select>
+      <select id="workTag" aria-label="Tag"><option value="next">next</option><option value="blocked">blocked</option><option value="decision">decision</option></select>
+      <button type="submit">Add</button>
+    </form>
+    <div class="toolbar">
+      <div class="chips" role="group" aria-label="Filter">
+        <button class="chip" data-f="all" aria-pressed="true">All</button>
+        <button class="chip" data-f="next" aria-pressed="false">Next</button>
+        <button class="chip" data-f="blocked" aria-pressed="false">Blocked</button>
+        <button class="chip" data-f="decision" aria-pressed="false">Decisions</button>
+      </div>
+      <label class="toggle"><input type="checkbox" id="workShowDone"> show done</label>
+    </div>
+    <div id="workList"></div>
+  </section>
+
+  <!-- Notes -->
+  <section id="view-notes" class="view notes" data-view="notes" hidden>
+    <aside class="notes-side">
+      <input id="noteSearch" type="search" placeholder="Find a note" aria-label="Find a note">
+      <div id="noteRecent" class="note-recent"></div>
+      <div id="noteTree" class="note-tree"></div>
+    </aside>
+    <div class="notes-main">
+      <div class="note-bar">
+        <div class="note-path mono" id="notePath">Pick a note</div>
+        <div class="note-actions">
+          <button id="noteEdit" hidden>Edit</button>
+          <button id="noteSave" class="primary" hidden>Save</button>
+          <button id="noteCancel" hidden>Cancel</button>
+        </div>
+      </div>
+      <div id="noteMsg" class="inline-msg" hidden></div>
+      <article id="noteView" class="md note-view"></article>
+      <textarea id="noteEditor" class="note-editor" hidden spellcheck="false"></textarea>
+      <div id="noteLinkedFrom" class="note-linked-from"></div>
+    </div>
+  </section>
+  <div id="wikiPreview" class="wiki-preview" hidden></div>
+
+  <!-- Journal -->
+  <section id="view-journal" class="view" data-view="journal" hidden>
+    <div class="area-head journal-head">
+      <div class="journal-head-row">
+        <h1 id="journalTitle">Journal</h1>
+        <div class="journal-nav">
+          <button type="button" id="journalPrev" class="icon-btn" title="Previous day ([)" aria-label="Previous day">&#8592;</button>
+          <button type="button" id="journalToday" class="ghost small" hidden>Today</button>
+          <button type="button" id="journalNext" class="icon-btn" title="Next day (])" aria-label="Next day">&#8594;</button>
+        </div>
+      </div>
+      <p id="journalSub">Today's note. The brain writes the plan and the review; the log is yours.</p>
+    </div>
+    <div class="journal-grid" id="journalGrid">
+      <article class="panel"><h2>Plan</h2><div class="md" id="jPlan"></div></article>
+      <article class="panel">
+        <h2>Log</h2>
+        <div class="md" id="jLog"></div>
+        <form id="logForm" class="log-form">
+          <textarea id="logText" rows="3" placeholder="What happened, what you decided, what annoyed you. One line is enough."></textarea>
+          <button type="submit">Add to today's log</button>
+        </form>
+      </article>
+      <article class="panel"><h2>Sessions</h2><div class="md" id="jSessions"></div></article>
+      <article class="panel"><h2>Review</h2><div class="md" id="jReview"></div></article>
+      <article class="panel"><h2>Carry forward</h2><div class="md" id="jCarry"></div></article>
+      <article class="panel"><h2>Earlier days</h2><ul class="plain-list" id="jDays"></ul></article>
+    </div>
+  </section>
+
+  <!-- Scout -->
+  <section id="view-scout" class="view" data-view="scout" hidden>
+    <div class="area-head">
+      <h1>Scout</h1>
+      <p>What the research loop found in the world that bears on your work, with dated sources. Keep weaves it into the project note on Sunday; dismiss buries it.</p>
+    </div>
+    <div class="scout-status-row">
+      <span id="scoutLastRan" class="scout-lastran mono"></span>
+      <button type="button" id="scoutRunNow" class="primary">Run Scout now</button>
+    </div>
+    <div id="scoutNew" class="cards"></div>
+    <h2 class="sub-head">Kept</h2>
+    <div id="scoutKept" class="cards muted"></div>
+  </section>
+
+  <!-- Runs -->
+  <section id="view-chat" class="view" data-view="chat" hidden>
+    <div class="area-head">
+      <h1>Chat</h1>
+      <p>Write to the brain here and it answers in the same thread. It is not instant: every scheduled run opens this thread, answers what is waiting and does the work, so a message lands with the next run unless you start one yourself.</p>
+    </div>
+    <div class="chat-wrap">
+      <div id="chatThread" class="chat-thread" aria-live="polite"></div>
+      <p id="chatWaiting" class="chat-waiting" hidden></p>
+      <form id="chatForm" class="chat-form">
+        <textarea id="chatText" rows="3" placeholder="Tell the brain what you want done. It reads this on its next run." maxlength="4000"></textarea>
+        <div class="chat-actions">
+          <button type="button" id="chatNow" class="primary" title="Send now and start the approvals watcher straight away">Send and run now</button>
+          <button type="submit" class="ghost" id="chatSend" title="Send. It is picked up at the next scheduled run">Send</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- Team: the agent command centre (System/Setup/Agent command centre.md in the vault).
+       Every figure comes from state.team, built in netlify/functions/lib/team.mts from vault
+       files only; a figure with no source says "No data yet", never zero. -->
+  <section id="view-team" class="view" data-view="team" hidden>
+    <div class="area-head">
+      <h1>Team</h1>
+      <p>The Director and its specialists, by department. Read from the lock ledger, the run log's DIRECTOR lines, the queue and its archive, and the registry in <a href="#/notes/System%2FDepartments.md">Departments</a>. Runs are counted, not tokens: the platform cannot see usage.</p>
+    </div>
+    <div id="teamStrip" class="stat-tiles team-strip"></div>
+    <div id="teamStripRows" class="panel lead-strip-rows" hidden></div>
+    <section class="panel cc-director" aria-labelledby="ccDirectorHead">
+      <h2 id="ccDirectorHead" class="cc-head">Director</h2>
+      <div id="teamDirector"></div>
+    </section>
+    <h2 class="sub-head">Departments <span class="why-inline">click a lane to filter everything below it</span></h2>
+    <div id="teamLanes" class="cc-lanes" role="group" aria-label="Departments"></div>
+    <div id="teamFilterLine" class="cc-filter-line" hidden></div>
+    <!-- Team: agent nodes from System/Agents/*.md, wired to the brain by vein lines. Motion is
+         driven only by real changes /api/state reports (a run logging, an approval's status
+         moving, a new vault commit) and by a Brain reply in chat; nothing here is decorative. -->
+    <div id="teamPanel" class="team-panel">
+      <div class="team-panel-head">
+        <h2 class="sub-head" style="margin-top:0">Team roster</h2>
+        <span id="teamLive" class="team-live mono" title="Polls /api/state while this tab is open and visible"></span>
+      </div>
+      <div id="teamStage" class="team-stage">
+        <canvas id="teamCanvas" aria-hidden="true"></canvas>
+        <div id="teamNodes" class="team-nodes" role="list" aria-label="The agent team"></div>
+      </div>
+      <ul id="teamStatic" class="team-static" role="list" aria-label="The agent team" hidden></ul>
+      <p id="teamEmpty" class="empty" hidden>No agent files found under System/Agents/ in the vault.</p>
+      <div id="teamReplay" class="team-replay" hidden>
+        <div class="team-replay-head">
+          <span>Last 24 hours</span>
+          <span id="teamReplayCount" class="mono"></span>
+        </div>
+        <input id="teamReplayRange" type="range" min="0" max="1000" value="1000" aria-label="Scrub the last 24 hours of agent activity">
+        <div id="teamReplayTicks" class="team-replay-ticks" aria-hidden="true"></div>
+        <div id="teamReplayEvent" class="team-replay-event mono">Drag to look back over the last day.</div>
+      </div>
+    </div>
+
+    <div id="teamRoster" class="table-wrap"></div>
+    <h2 class="sub-head">Demand against capacity</h2>
+    <div id="teamDemand" class="cc-charts"></div>
+    <h2 class="sub-head">Throughput and quality, this week</h2>
+    <div id="teamThroughput"></div>
+    <h2 class="sub-head">Usage: routine runs a day, last 14 days</h2>
+    <div id="teamUsage" class="panel"></div>
+    <h2 class="sub-head">What we need more of</h2>
+    <div id="teamNeeds" class="panel"></div>
+  </section>
+
+  <section id="view-runs" class="view" data-view="runs" hidden>
+    <div class="area-head">
+      <h1>Run health</h1>
+      <p>Every automated run, newest first. A job that should have run and has no line is a missed run. The agent team has its own area: <a href="#/team">Team</a>.</p>
+    </div>
+
+    <div id="runTiles" class="stat-tiles"></div>
+    <div id="runsToolbar" class="runs-toolbar">
+      <label class="toggle" for="runsJobFilter">Job<select id="runsJobFilter" aria-label="Filter by job"><option value="">All jobs</option></select></label>
+    </div>
+    <div class="table-wrap"><table class="runs" id="runsTable"><thead><tr><th></th><th>When</th><th>Job</th><th>Surface</th><th>Result</th><th>Note</th></tr></thead><tbody></tbody></table></div>
+  </section>
+
+</main>
+
+<div id="undoStack" class="undo-stack" role="status" aria-live="polite"></div>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+<!-- The detail panel: a row from Tasks, Fernmoor or Claude needs from you, opened by a click,
+     Enter on a focused row, or a tap on a phone. A right-hand sheet on desktop, full width on a
+     phone. Escape closes it; J and K move to the next or previous row in the same list. -->
+<div id="detailOverlay" class="detail-overlay" hidden>
+  <aside id="detailPanel" class="detail-panel" role="dialog" aria-modal="true" aria-label="Detail">
+    <div class="detail-bar">
+      <div class="detail-nav">
+        <button type="button" id="detailPrev" class="icon-btn" title="Previous (K)" aria-label="Previous row">&#8593;</button>
+        <button type="button" id="detailNext" class="icon-btn" title="Next (J)" aria-label="Next row">&#8595;</button>
+      </div>
+      <button type="button" id="detailClose" class="icon-btn" title="Close (Esc)" aria-label="Close">&#10005;</button>
+    </div>
+    <div id="detailBody" class="detail-body"></div>
+  </aside>
+</div>
+
+<!-- Lead detail: every field of a pipeline row, its next step and date, and the research row
+     from the lead list. Opened by clicking a card or a due row. Escape closes it. -->
+<div id="leadOverlay" class="detail-overlay" hidden>
+  <aside id="leadPanel" class="detail-panel" role="dialog" aria-modal="true" aria-label="Lead detail">
+    <div class="detail-bar">
+      <div class="detail-nav"></div>
+      <button type="button" id="leadClose" class="icon-btn" title="Close (Esc)" aria-label="Close">&#10005;</button>
+    </div>
+    <div id="leadBody" class="detail-body"></div>
+  </aside>
+</div>
+
+<!-- Agent detail: role, schedule, last run, tools, goals, recent work. Opened by clicking a
+     node in the Team view or its static-list fallback. Escape closes it. -->
+<div id="agentOverlay" class="detail-overlay" hidden>
+  <aside id="agentPanel" class="detail-panel" role="dialog" aria-modal="true" aria-label="Agent detail">
+    <div class="detail-bar">
+      <div class="detail-nav"></div>
+      <button type="button" id="agentClose" class="icon-btn" title="Close (Esc)" aria-label="Close">&#10005;</button>
+    </div>
+    <div id="agentBody" class="detail-body"></div>
+  </aside>
+</div>
+
+<script src="vendor/three.min.js"></script>
+<script src="vendor/three-extras.js"></script>
+<script src="vendor/marked.min.js"></script>
+<script src="brain.js"></script>
+<script src="veins.js"></script>
+<script src="team.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

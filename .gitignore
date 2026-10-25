@@ -1,0 +1,7 @@
+.netlify/
+node_modules/
+.DS_Store
+.env
+netlify/functions/lib/vault-bundle.json
+public/vendor/marked.min.js
+public/vendor/three.min.js
